@@ -7,13 +7,8 @@ if (Meteor.isClient) {
   // return the id of the first document you can find
   Template.editor.helpers({
     docid:function(){
-      var doc = Documents.findOne();
-      if (doc){
-        return doc._id;
-      }
-      else {
-        return undefined;
-      }
+      setupCurrentDocument();
+      return Session.get("docid");
     }, 
     // configure the CodeMirror editor
     config:function(){
@@ -55,6 +50,17 @@ if (Meteor.isClient) {
     "click .js-add-doc": function(event) {
       event.preventDefault();
       console.log("Add a new doc!");
+
+      if (!Meteor.user()) {
+        alert("You need to login first!");
+      } else {
+        var id = Meteor.call("addDoc", function(err, res) {
+          if (!err) {
+            console.log("callback received id " + res);
+            Session.set("docid", res);
+          }
+        });
+      }
     }
   });
  
@@ -70,6 +76,18 @@ if (Meteor.isServer) {
 }
 // methods that provide write access to the data
 Meteor.methods({
+  addDoc: function() {
+    var doc;
+    if (!this.userId) { // not logged in
+      return;
+    } else {
+      doc = {owner: this.userId, createdOn: new Date(),
+             title: "my new doc"};
+      var id = Documents.insert(doc);
+      console.log("addDoc method: got id " + id);
+      return id;
+    }
+  },
   // allows changes to the editing users collection 
   addEditingUser:function(){
     var doc, user, eusers;
@@ -91,6 +109,16 @@ Meteor.methods({
     EditingUsers.upsert({_id:eusers._id}, eusers);
   }
 })
+
+function setupCurrentDocument() {
+  var doc;
+  if (!Session.get("docid")) {
+    doc = Documents.findOne();
+    if (doc) {
+      Session.set("docid", doc._id);
+    }
+  }
+}
 
 // this renames object keys by removing hyphens to make the compatible 
 // with spacebars. 
