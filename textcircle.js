@@ -48,6 +48,15 @@ if (Meteor.isClient) {
       return users;
     }
   })
+
+  // EVENTS
+
+  Template.navbar.events({
+    "click .js-add-doc": function(event) {
+      event.preventDefault();
+      console.log("Add a new doc!");
+    }
+  });
  
 }// end isClient...
 
