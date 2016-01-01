@@ -4,7 +4,14 @@ this.Documents = new Mongo.Collection("documents");
 EditingUsers = new Mongo.Collection("editingUsers");
 
 if (Meteor.isClient) {
+
+  Template.navbar.helpers({
+    documents: function() {
+      return Documents.find({});
+    }
+  });
   // return the id of the first document you can find
+
   Template.editor.helpers({
     docid:function(){
       setupCurrentDocument();
@@ -61,6 +68,10 @@ if (Meteor.isClient) {
           }
         });
       }
+    },
+    "click .js-load-doc": function(event) {
+      console.log(this);
+      Session.set("docid", this.id);
     }
   });
  
